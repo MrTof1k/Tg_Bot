@@ -1,6 +1,7 @@
 # Импортируем необходимые классы.
 import logging
 import keyboard
+import random
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, ConversationHandler, MessageHandler, filters, CommandHandler, Updater
 from config import BOT_TOKEN, ID_GROUP
@@ -15,8 +16,7 @@ logger = logging.getLogger(__name__)
 # txt файл с текстом первого сообщения
 file = open("media/cofee.txt", encoding="utf8").read()
 
-# mp3 файл для приятного ожидания
-music = open("media/badbadnotgood-sam-herring-time-moves-slow.mp3", "rb")
+
 
 # кнопки для некоторых вопросов
 # requirement
@@ -103,33 +103,25 @@ async def start(update, context):
 # Дальнейшие вопросы для коректного заббора сообщений-ответов нужно вопрос задавать в предыдущей функции
 async def sity(update, context):
 	await update.message.reply_text("В каком городе вы живёте?")
-	# if filters.TEXT:
-	#   customer_information.write(f"Город: {update.message.text} \n")
 	return 1
 
 
 async def name(update, context):
-	await update.message.reply_text("Ваше ФИО:")
+	await update.message.reply_text("Ваше имя:")
 	d = {"Город": update.message.text}
-	# customer_information.write(f"ФИО: {update.message.text} \n")
-
 	context.bot_data.update(d)
 	return 2
 
 
 async def requirement(update, context):
-	await update.message.reply_text("Что вам нужно ?", reply_markup=markup)
-	# customer_information.write(f"Требования: {update.message.text} \n")
+	await update.message.reply_text("Что вам нужно?", reply_markup=markup)
 	d = {"ФИО": update.message.text}
-
 	context.bot_data.update(d)
 	return 3
 
 
 async def description(update, context):
-	await update.message.reply_text("Дайте краткое описание.")
-	# customer_information.write(f"Описание: {update.message.text} \n")
-
+	await update.message.reply_text("Дайте краткое описание:")
 	d = {"Требования": update.message.text}
 	context.bot_data.update(d)
 	return 4
@@ -145,8 +137,9 @@ async def descrip_file(update, context):
 
 
 async def descrip_photo(update, context):
-	await update.message.reply_text("Пришлите фото желаемой работы")
-	# customer_information.write(f"Описание: {update.message.text} \n")
+	await update.message.reply_html(
+		text="Пришлите фото желаемой работы \n "
+			 "<b>!Если вы сидите с ПК, то отправте с сжатием!</b>")
 
 	d = {"Ссылка": update.message.text}
 	context.bot_data.update(d)
@@ -157,7 +150,6 @@ async def choice_of_plastic(update, context):
 	await update.message.reply_text("Выберите вид пластика", reply_markup=markup_plastic)
 	await update.message.reply_text("Информация о пластиках", reply_markup=InlineKeyboardMarkup(keyboard))
 	# (красивый кнопка)
-	# customer_information.write(f"Пластик: {update.message.text} \n")
 	d = {"Референс": update.message.photo[0].file_id}
 	context.bot_data.update(d)
 	return 7
@@ -183,12 +175,12 @@ async def second_response(update, context):
 	await update.message.reply_photo(context.bot_data['Референс'])
 
 	# опять раньше спрашиваем тк будет включена след функция
-	await update.message.reply_text("Всё верно ?", reply_markup=markup_application)
+	await update.message.reply_text("Всё верно?", reply_markup=markup_application)
 
 	return 8
 
 
-# функция костыль (кудаж без них) спрашиваем у пользователя всёли верно если да то присылаем в общий чат если нет,
+# функция костыль (кудаж без них) спрашиваем у пользователя всё ли верно если да то присылаем в общий чат если нет,
 # то всё заново
 async def proverka(update, context):
 	if update.message.text == "Да":
@@ -205,9 +197,9 @@ async def application(update, context):
 		 f"Город: {context.bot_data['Город']} \n"
 		 f"Пользователь: @{update.message.chat.username}"
 		 f" {update.message.chat.id} \n"
-		 f"ФИО: {context.bot_data['ФИО']} \n"
-		 f"Описание: {context.bot_data['Описание']} \n"
+		 f"Имя: {context.bot_data['ФИО']} \n"
 		 f"Пластик: {context.bot_data['Пластик']} \n"
+		 f"Описание: {context.bot_data['Описание']} \n"
 		 f"Референс: {context.bot_data['Ссылка']}")
 	await context.bot.send_message(
 		chat_id=ID_GROUP,
@@ -217,7 +209,9 @@ async def application(update, context):
 	await context.bot.send_photo(ID_GROUP, context.bot_data['Референс'])
 	await update.message.reply_text("Заявка успешно отправлена! \n"
 									"Для более приятного ожидания ответа, вот вам музончик :)")
-
+	# mp3 файл для приятного ожидания
+	musik_id = random.randint(1, 6)
+	music = open(f"media/{musik_id}.mp3", "rb")
 	await update.message.reply_audio(audio=music)
 	await stop(update, context)
 
